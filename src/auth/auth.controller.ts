@@ -1,14 +1,14 @@
-import { Body, Controller, Get, Post, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
-import { GetUser } from 'src/@common/decorators/get-user.decoretor';
+import { GetUser } from 'src/@common/decorators/get-user.decorator';
 import { User } from './user.entity';
+import { AuthGuard } from '@nestjs/passport';
 
 
 // 엔드포인트를 넣으면 컨트롤러의 모든 경호에 auth 접두사가 추가된다.
 @Controller('auth')
 //auth 컨트롤러도 서비스를 사용할 수 있게 컨스트럭터로 넣어준다.
-// 
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -27,9 +27,12 @@ export class AuthController {
   }
 
 
-  @Get('/refresh')
   // 클라이언트 헤더에 토큰이 들어있다.
   // npm i passport passport-jwt @nestjs/passport 인증 전략 라이브러리 설치
+  @Get('/refresh')
+  // nestjs 의 UserGuards를 이용해서 passport의 AuthGuard를 추가한다.
+  // 이렇게하면 내가 작성한 jwt strategy를 사용할 수 있다.
+  @UseGuards(AuthGuard())
   refresh(@GetUser() user: User){
     return this.authService.refreshToken(user)
   }
