@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from './post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
+import { User } from 'src/auth/user.entity';
 
 @Injectable()
 export class PostService {
@@ -15,10 +16,12 @@ export class PostService {
     private postRepository: Repository<Post>,
   ) {}
 
-  async getAllMarkers() {
+  async getAllMarkers(user: User) {
     try {
       const markers = await this.postRepository
         .createQueryBuilder('post')
+        // where절 첫번째인자로 식을 넣고, 두번쨰인자에 변수명에 입력될 값을 넣는다.
+        .where('post.userId = :userId', {userId: user.id})
         .select([
           'post.id',
           'post.latitude',
@@ -36,23 +39,25 @@ export class PostService {
     }
   }
 
-  async getPosts(page: number) {
+  async getPosts(page: number, user: User) {
     const perPage = 10;
     const offset = (page - 1) * perPage;
 
     return this.postRepository
       .createQueryBuilder('post')
+      .where('post.userId = :userId', {userId: user.id})
       .orderBy('post.date', 'DESC')
       .take(perPage)
       .skip(offset)
       .getMany();
   }
 
-  async getPostById(id: number) {
+  async getPostById(id: number, user: User) {
     try {
       const foundPost = await this.postRepository
         .createQueryBuilder('post')
-        .where('post.id = :id', { id })
+        .where('post.userId = :userId', {userId: user.id})
+        .andWhere('post.id = :id', { id }) // where 가 이미 있으므로 andWhere
         .getOne();
 
       if (!foundPost) {
@@ -68,7 +73,7 @@ export class PostService {
     }
   }
 
-  async createPost(createPostDto: CreatePostDto) {
+  async createPost(createPostDto: CreatePostDto, user: User) {
     const {
       latitude,
       longitude,
@@ -90,6 +95,7 @@ export class PostService {
       date,
       description,
       score,
+      user,
     });
 
     try {
@@ -100,16 +106,23 @@ export class PostService {
         '장소를 추가하는 도중 에러가 발생했습니다.',
       );
     }
-    return post;
+
+    // post 객체에서 user 정보를 제외하고 리턴하기 위해서
+    const { user:_, ...postWithoutUser} = post
+
+    return postWithoutUser;
   }
 
-  async deletePost(id: number) {
+  async deletePost(id: number, user:User) {
     try {
       const result = await this.postRepository
         .createQueryBuilder('post')
         .delete()
         .from(Post)
-        .where('id = :id', { id })
+        // 유저 엔티티와 ManyToOne 관계로 userId 테이블 생성됨
+        // from(Post)에서 대상 엔티티를 지정했기 때문에 post.userId처럼 별칭을 사용하면 에러발생.
+        .where('userId = :userId', {userId: user.id})
+        .andWhere('id = :id', { id })
         .execute();
 
       if (result.affected === 0) {
@@ -128,8 +141,9 @@ export class PostService {
   async updatePost(
     id: number,
     updatePostDto: Omit<CreatePostDto, 'latitude' | 'logitude' | 'address'>,
+    user: User,
   ) {
-    const post = await this.getPostById(id);
+    const post = await this.getPostById(id, user);
     const { title, color, date, description, score, imageUris } = updatePostDto;
     post.title = title;
     post.color = color;

@@ -1,6 +1,7 @@
-import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { MarkerColor } from "./marker-color.enum";
 import { ColumnNumericTransformer } from "src/@common/transformers/numeric.transformer";
+import { User } from "src/auth/user.entity";
 
 
 @Entity()
@@ -50,4 +51,7 @@ export class Post extends BaseEntity{
   @DeleteDateColumn()
   deletedAt: Date | null;
 
+  // 여러개의 포스트가 한명의 유저에게 속한다. ManyToOne
+  @ManyToOne(() => User, (user) => user.post, {eager: false})
+  user:User
 }
