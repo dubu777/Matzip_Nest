@@ -3,6 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostModule } from './post/post.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ImageModule } from './image/image.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { FavoriteModule } from './favorite/favorite.module';
 
 @Module({
   imports: [
@@ -17,8 +21,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       entities: [__dirname + '/**/*.entity.{js,ts}'],
       synchronize: true, // 운영환경에서 true 로 하면 DB가 날아갈수도 있다. 개발 환경에서만 true로 하자.
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+    }),
     PostModule,
-    AuthModule
+    AuthModule,
+    ImageModule,
+    FavoriteModule,
   ],
   providers: [ConfigService],
 })

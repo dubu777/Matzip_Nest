@@ -1,3 +1,4 @@
+import { Favorite } from "src/favorite/favorite.entity";
 import { MarkerColor } from "src/post/marker-color.enum";
 import { Post } from "src/post/post.entity";
 import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
@@ -58,8 +59,14 @@ export class User extends BaseEntity {
 
   // 한명의 유저가 여러개 포스트 => OneToMany
   // () => Post - 대상 엔티티가 Post 임을 나타냄.
-  // (post) => post.user는 역참조를 설정하는 함수로, Post 엔티티의 user 속성을 참조함
+  // (post) => post.user는 TypeORM에게 Post 엔티티의 user 속성이 User 엔티티를 참조하고 있음을 알림
+  // 이 관계 정의는 데이터베이스에서 외래 키 제약 조건으로 변환된다.
+  // Post 테이블은 userId와 같은 외래 키 컬럼을 가지게 되며, 이는 User 테이블의 id 컬럼을 참조한다.
+  // 여기에서 post 는 고정 이름이 아니다 anyname이라고 해도 같은 동작을 함
   // eager를 사용하면 관계되어있는 데이터를 함꼐 가져올수 있다.
   @OneToMany(() => Post, (post) => post.user, {eager: false}) 
   post: Post[]
+
+  @OneToMany(() => Favorite, (favorite) => favorite.user, {eager: false}) 
+  favorite: Favorite[]
 }
