@@ -13,11 +13,11 @@ import { FavoriteModule } from './favorite/favorite.module';
     ConfigModule.forRoot({isGlobal: true}),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
+      host: process.env.DB_HOST,
       port: 5432,
-      username: 'postgres',
-      password: '5296',
-      database: 'matzip-server',
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
       entities: [__dirname + '/**/*.entity.{js,ts}'],
       synchronize: true, // 운영환경에서 true 로 하면 DB가 날아갈수도 있다. 개발 환경에서만 true로 하자.
     }),
