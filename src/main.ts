@@ -7,7 +7,8 @@ async function bootstrap() {
 
   if(process.env.NODE_ENV === 'production') {
     app.enableCors({ // https 적용해서 실제로 내 주소로 배포했을시에
-      origin: ['https://내 주소'],
+      // origin: ['https://내 주소'],
+      origin: true,
       credentials: true,
     })
   } else { // 프로덕션이 아닌 개발환경
